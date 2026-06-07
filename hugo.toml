@@ -1,7 +1,7 @@
 baseURL = "https://logsipedia.pages.dev/"
 languageCode = "en-us"
 title = "Logsipedia"
-theme = "mytheme"
+# theme = "mytheme"   # تم التعليق أو الحذف
 paginate = 10
 [params]
   adsense_id = ""   # ضع معرف AdSense هنا بعد الموافقة
