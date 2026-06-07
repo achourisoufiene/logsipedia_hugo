@@ -1,0 +1,47 @@
+{{ define "main" }}
+<div class="max-w-6xl mx-auto px-4 py-16">
+    <h1 class="text-3xl font-bold mb-8">🔍 Advanced Search</h1>
+    <div class="mb-8">
+        <input type="text" id="searchQuery" placeholder="Search by error message, technology, or tag..." class="w-full p-3 bg-slate-900 border border-slate-800 rounded-xl text-white">
+        <div class="flex gap-4 mt-4">
+            <select id="techFilter" class="p-2 bg-slate-900 border border-slate-800 rounded-lg text-sm">
+                <option value="">All Technologies</option>
+                {{ $techs := slice "docker" "kubernetes" "python" "rust" "golang" "nodejs" }}
+                {{ range $techs }}<option value="{{ . }}">{{ . }}</option>{{ end }}
+            </select>
+            <button id="doSearch" class="px-6 py-2 bg-emerald-600 rounded-lg">Search</button>
+        </div>
+    </div>
+    <div id="results" class="space-y-4">
+        <!-- results will appear here via JavaScript -->
+        <p class="text-slate-400">Enter a search term above.</p>
+    </div>
+</div>
+<script>
+    const posts = [
+        {{ range where .Site.RegularPages "Section" "docs" }}
+        { title: {{ .Title | jsonify }}, url: {{ .RelPermalink | jsonify }}, tech: {{ .Params.tech | jsonify }}, content: {{ .Plain | jsonify | safeJS }} },
+        {{ end }}
+    ];
+    document.getElementById('doSearch').addEventListener('click', () => {
+        const q = document.getElementById('searchQuery').value.toLowerCase();
+        const tech = document.getElementById('techFilter').value;
+        const filtered = posts.filter(p => {
+            if (tech && p.tech !== tech) return false;
+            if (q && !p.title.toLowerCase().includes(q) && !p.content.toLowerCase().includes(q)) return false;
+            return true;
+        });
+        const container = document.getElementById('results');
+        if (filtered.length === 0) {
+            container.innerHTML = '<p class="text-slate-400">No results found.</p>';
+            return;
+        }
+        container.innerHTML = filtered.map(p => `
+            <a href="${p.url}" class="block p-6 bg-slate-900 border border-slate-800 rounded-xl hover:border-emerald-500/30">
+                <div class="text-xs text-emerald-400">${p.tech}</div>
+                <h2 class="text-xl font-bold text-white">${p.title}</h2>
+            </a>
+        `).join('');
+    });
+</script>
+{{ end }}

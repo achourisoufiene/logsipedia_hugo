@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .Title }} | Logsipedia</title>
+    <meta name="description" content="{{ .Site.Params.description }}">
+    <meta name="keywords" content="programming errors, bug fixes, Docker, Kubernetes, Python, Rust">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/custom.css">
+    {{ if .Site.Params.adsense_id }}
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ .Site.Params.adsense_id }}" crossorigin="anonymous"></script>
+    {{ end }}
+</head>
+<body class="bg-slate-950 text-slate-100">
+    {{ partial "header.html" . }}
+    <main>
+        {{ block "main" . }}{{ end }}
+    </main>
+    {{ partial "footer.html" . }}
+    <script src="/js/main.js"></script>
+</body>
+</html>

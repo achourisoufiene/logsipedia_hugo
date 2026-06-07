@@ -1,0 +1,13 @@
+baseURL = "https://logsipedia.pages.dev/"
+languageCode = "en-us"
+title = "Logsipedia"
+theme = "mytheme"
+paginate = 10
+[params]
+  adsense_id = ""   # ضع معرف AdSense هنا بعد الموافقة
+  description = "AI-powered solutions for programming errors, verified by GitHub"
+  author = "Logsipedia Team"
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true   # للسماح بـ HTML داخل Markdown

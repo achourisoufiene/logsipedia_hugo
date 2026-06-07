@@ -1,0 +1,71 @@
+{{ define "main" }}
+<article class="max-w-4xl mx-auto px-4 py-12">
+    <div class="mb-8 pb-8 border-b border-slate-800">
+        <div class="flex flex-wrap gap-2 mb-4">
+            <span class="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-full">{{ .Params.tech }}</span>
+            {{ if .Params.verified }}
+            <span class="text-xs bg-green-500/10 text-green-400 px-2 py-1 rounded-full">✅ Verified</span>
+            {{ else }}
+            <span class="text-xs bg-yellow-500/10 text-yellow-400 px-2 py-1 rounded-full">🤖 AI-generated</span>
+            {{ end }}
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">{{ .Title }}</h1>
+        <div class="flex items-center gap-4 text-sm text-slate-500">
+            <span>📅 {{ .Date.Format "Jan 2, 2006" }}</span>
+            <span>🔗 <a href="{{ .Params.source_url }}" target="_blank" class="text-emerald-400 hover:underline">GitHub Issue</a></span>
+        </div>
+    </div>
+
+    <div class="prose prose-invert prose-emerald max-w-none">
+        <h2>🐞 Error Log</h2>
+        <pre><code>{{ .Params.clean_log }}</code></pre>
+
+        <h2>🧠 Root Cause</h2>
+        <p>{{ .Params.root_cause }}</p>
+
+        <h2>🛠️ Solution</h2>
+        <div class="solution-text">{{ .Params.solution | markdownify }}</div>
+
+        <h2>💻 Code Fix</h2>
+        <pre><code>{{ .Params.code_snippet }}</code></pre>
+    </div>
+
+    <!-- Vote Buttons -->
+    <div class="flex justify-center my-8">
+        <div class="flex gap-4" id="vote-buttons" data-hash="{{ .File.BaseFileName }}">
+            <button class="vote-up flex items-center gap-1 px-4 py-2 rounded-lg bg-slate-800 hover:bg-emerald-500/20 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                <span id="up-count">0</span>
+            </button>
+            <button class="vote-down flex items-center gap-1 px-4 py-2 rounded-lg bg-slate-800 hover:bg-rose-500/20 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <span id="down-count">0</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Related Errors -->
+    {{ $related := where (where .Site.RegularPages "Section" "docs") "File.BaseFileName" "ne" .File.BaseFileName | first 4 }}
+    {{ if $related }}
+    <div class="mt-12">
+        <h3 class="text-lg font-bold mb-4">📌 Related Errors</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {{ range $related }}
+            <a href="{{ .RelPermalink }}" class="block p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-emerald-500/30">
+                <div class="text-xs text-emerald-400">{{ .Params.tech }}</div>
+                <h4 class="font-bold text-white">{{ .Title }}</h4>
+            </a>
+            {{ end }}
+        </div>
+    </div>
+    {{ end }}
+
+    <!-- AdSense -->
+    {{ if .Site.Params.adsense_id }}
+    <div class="mt-8">
+        <ins class="adsbygoogle" style="display:block" data-ad-client="{{ .Site.Params.adsense_id }}" data-ad-slot="1234567891" data-ad-format="auto"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+    {{ end }}
+</article>
+{{ end }}
