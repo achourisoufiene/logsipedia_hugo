@@ -1,5 +1,27 @@
-body { font-family: system-ui, -apple-system, sans-serif; }
-pre, code { font-family: 'Courier New', monospace; }
-.prose pre { background-color: #0f172a; border-radius: 0.75rem; padding: 1rem; overflow-x: auto; }
-.line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+body {
+    background-color: #090d16;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.code-font, pre, code {
+    font-family: 'Fira Code', monospace;
+}
+.prose pre {
+    background-color: #0f172a;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    overflow-x: auto;
+}
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
