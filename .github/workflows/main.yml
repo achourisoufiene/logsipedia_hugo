@@ -1,0 +1,114 @@
+name: pSEO Pipelinerrrr (Final Bash)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run full pipeline
+        env:
+          GH_PAT: \${{ secrets.LOG_PIPELINE_PAT }}
+          DS_KEY: \${{ secrets.DEEPSEEKEY }}
+          REPO: \${{ github.repository }}
+        run: |
+          set -e
+          echo "=== 1. Fetching issues ==="
+          curl -s -H "Authorization: Bearer \$GH_PAT" \
+               "https://github.com\$REPO/issues?labels=pseo&state=open" > issues.json
+          
+          COUNT=\$(jq '. | length' issues.json)
+          echo "Found \$COUNT issues"
+          if [ "\$COUNT" -eq 0 ]; then
+            echo "No issues with label 'pseo'"
+            exit 0
+          fi
+          
+          mkdir -p content/docs
+          
+          for i in \((seq 0\)((COUNT-1))); do
+            TITLE=\((jq -r ".[\)i].title" issues.json)
+            BODY=\((jq -r ".[\)i].body // \"\"" issues.json)
+            URL=\((jq -r ".[\)i].html_url" issues.json)
+            
+            echo "Processing: \$TITLE"
+            
+            # Extract log between ```log and ``` safely via awk
+            if echo "\$BODY" | grep -q '```log'; then
+              LOG=$(echo "$BODY" | awk '/```log/{flag=1;next}/```/{flag=0}flag')
+            else
+              LOG="$BODY"
+            fi
+            
+            if [ -z "$LOG" ]; then
+              LOG="$BODY"
+            fi
+            
+            # FIXED: Built the prompt inside a standard indented block variable to bypass YAML line-parsing faults
+            PROMPT_TEXT="You are an expert DevOps engineer. Given the error log below, produce a structured solution wrapped inside standard YAML frontmatter fences exactly like this:
+          ---
+          title: \"$TITLE\"
+          tech: (detect technology)
+          exit_code: (extract exit code)
+          clean_log: (one-line error summary)
+          root_cause: (explain why)
+          solution: (step-by-step fix)
+          code_snippet: |
+            (example command)
+          ---
+          
+          Log:
+          $LOG"
+            
+            # Save the clean variable text payload to prompt.txt
+            echo "$PROMPT_TEXT" > prompt.txt
+            
+            echo "Calling DeepSeek API..."
+            RESP=$(curl -s -X POST https://deepseek.com \
+              -H "Authorization: Bearer $DS_KEY" \
+              -H "Content-Type: application/json" \
+              -d "{\"model\":\"deepseek-chat\",\"messages\":[{\"role\":\"user\",\"content\":$(jq -Rs . < prompt.txt)}],\"temperature\":0.2,\"max_tokens\":1500}")
+            
+            # FIXED: Uses standard choices parsing array path string extraction rules
+            FRONT=$(echo "$RESP" | jq -r '.choices[0].message.content // empty')
+            if [ -z "$FRONT" ] || [ "$FRONT" = "null" ]; then
+              echo "ERROR: Empty response from DeepSeek"
+              continue
+            fi
+            
+            # Clean out code blocks and whitespace traps safely
+            FRONT=$(echo "$FRONT" | sed -E 's/^```(yaml|markdown)?//gi; s/```$//g' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+            FRONT=$(echo "$FRONT" | sed -E 's/^---//g; s/---$//g' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+            
+            # Create slug
+            SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//')
+            FILE="content/docs/$SLUG.md"
+            
+            # Write file clean structure
+            {
+              echo "---"
+              echo "$FRONT"
+              echo "---"
+              echo ""
+              echo "Auto-generated from issue: $URL"
+            } > "$FILE"
+            
+            echo "Written: $FILE"
+            rm -f prompt.txt
+            sleep 1
+          done
+          
+          rm -f issues.json
+
+      - name: Commit and push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "pSEO final bash asset update"
+          commit_user_name: "pSEO Bot"
+          commit_user_email: "bot@example.com"
+          file_pattern: "content/"
